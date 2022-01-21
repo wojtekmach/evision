@@ -1,9 +1,9 @@
-name: python compatibility
+name: OpenCV-Compatibility
 
 on:
   push:
     branches:
-      - python-compatibility
+      - opencv-compatibility
     paths-ignore:
       - '**/README.md'
       - 'examples/**'
@@ -16,7 +16,7 @@ on:
       - '.github/workflows/nerves-*'
       - '.github/workflows/macos-*'
       - '.github/workflows/linux-*'
-      - '.github/workflows/test-opencv-*'
+      - '.github/workflows/test-python-*'
 
   workflow_dispatch:
 
@@ -25,12 +25,11 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       MIX_ENV: test
-      OPENCV_VER: "4.5.5"
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
+        opencv-version: ["4.5.3", "4.5.2", "4.5.1", "4.5.0", "4.4.0", "4.3.0", "4.2.0", "4.1.2", "4.1.1", "4.1.0", "4.0.1", "4.0.0"]
 
     steps:
       - uses: actions/checkout@v2
@@ -41,25 +40,19 @@ jobs:
           otp-version: "24.1.5"
           elixir-version: "1.13"
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Display Python version
-        run: python --version
-
       - name: Install system dependecies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential automake autoconf pkg-config bc m4 unzip zip curl git libssl-dev libncurses5-dev erlang-inets erlang-os-mon erlang-runtime-tools erlang-ssl erlang-dev ca-certificates
+          sudo apt-get install -y build-essential automake autoconf pkg-config bc m4 unzip zip curl git libssl-dev libncurses5-dev ca-certificates
           sudo apt-get install -y libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavresample-dev ffmpeg
 
       - name: Mix Compile
         run: |
+          export OPENCV_VER=${{ matrix.opencv-version }}
           mix deps.get
           mix compile
 
       - name: Mix Test
         run: |
+          export OPENCV_VER=${{ matrix.opencv-version }}
           mix test --include dnn
